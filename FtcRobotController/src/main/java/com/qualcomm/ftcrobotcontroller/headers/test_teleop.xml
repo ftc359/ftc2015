@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<Robot>
+	<MOTOR name="motor_1" direction="1" defaultValue="0.0" telemetry="true">
+		<GAMEPAD number="1">
+			<JOYSTICK side="left" axis="y" type="exponential" threshold="0.1" maximumMagnitude="1.0" direction="0"/>
+		</GAMEPAD>
+	</MOTOR>
+	<SERVO name="servo_2" direction="-1" minPosition="0.0" maxPosition="1.0" startingValue="0.50" telemetry="true">
+		<GAMEPAD number="2">
+			<BUTTON type="right_bumper" afterPress="true" changedValue="1.0" />
+			<BUTTON type="left_bumper" afterPress="true" changedValue="0.0" />
+		</GAMEPAD>
+	</SERVO>
+</Robot>

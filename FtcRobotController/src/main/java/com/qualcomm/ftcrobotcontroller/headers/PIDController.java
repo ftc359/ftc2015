@@ -68,8 +68,8 @@ public class PIDController {
         return on;
     }
 
-    public void setSpeed(long countsPerSecond){
-        this.speed = (speed > 1.0)?1.0:(speed < -1.0)?-1.0:countsPerSecond;
+    public void setSpeed(double speed){
+        this.speed = (speed > 1.0)?1.0:(speed < -1.0)?-1.0:speed;
         this.turnOff();
         this.turnOn();
     }
@@ -89,10 +89,13 @@ public class PIDController {
         (new Thread(){
             @Override
             public void run() {
-                lastTime = System.currentTimeMillis();
-                lastEncoderCount = motor.getCurrentPosition();
-                lastError = 0;
-                errorSum = 0;
+                synchronized (this) {
+                    motor.setPower(speed);
+                    lastTime = System.currentTimeMillis();
+                    lastEncoderCount = motor.getCurrentPosition();
+                    lastError = 0;
+                    errorSum = 0;
+                }
 
                 while(on){
                     try{

@@ -2,25 +2,37 @@ package com.qualcomm.ftcrobotcontroller.headers;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import java.util.concurrent.TimeUnit;
+
 public class PIDController {
-    private DcMotor motor;
+    private final DcMotor motor;
 
     private double kP, kI, kD;
 
-    public final long sampleRate;
-    private long lastTime;
+    private final long sampleRate;
 
-    private long speed = 0; //setpoint
+    private double speed = 0.0; //setpoint
+    private final long MAX_COUNTS_PER_MINUTE;
 
     private volatile boolean on = false;
 
+    private long lastTime;
+    private long lastEncoderCount;
+    private double errorSum;
+    private double lastError;
+
     //Constructor
-    public PIDController(DcMotor motor, double kP, double kI, double kD, long sampleRate) {
+    public PIDController(DcMotor motor, double kP, double kI, double kD, long sampleRate, long MAX_COUNTS_PER_MINUTE) {
         this.motor = motor;
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
         this.sampleRate = sampleRate;
+        this.MAX_COUNTS_PER_MINUTE = MAX_COUNTS_PER_MINUTE;
+    }
+
+    public PIDController(DcMotor motor, double kP, double kI, double kD, long sampleRate) {
+        this(motor, kP, kI, kD, sampleRate, 150 /* rpm */ * 1120 /* ticks per rotation */);
     }
 
     //Getters and Setters
@@ -57,19 +69,30 @@ public class PIDController {
     }
 
     public void setSpeed(long countsPerSecond){
-        this.speed = countsPerSecond;
+        this.speed = (speed > 1.0)?1.0:(speed < -1.0)?-1.0:countsPerSecond;
+        this.turnOff();
+        this.turnOn();
     }
 
-    public long getSpeed(){
+    public double getSpeed(){
         return this.speed;
+    }
+
+    public DcMotor getMotor(){
+        return motor;
     }
 
     public void turnOn() {
         this.on = true;
+        getMotor().setPower(speed);
+
         (new Thread(){
             @Override
             public void run() {
                 lastTime = System.currentTimeMillis();
+                lastEncoderCount = motor.getCurrentPosition();
+                lastError = 0;
+                errorSum = 0;
 
                 while(on){
                     try{
@@ -79,10 +102,23 @@ public class PIDController {
                         this.interrupt();
                     }
                     synchronized (this) {
-                        long period = lastTime - System.currentTimeMillis();
+                        //Calculate current speed
+                        double period = TimeUnit.MILLISECONDS.toSeconds(lastTime - System.currentTimeMillis())/60.0;
                         lastTime = System.currentTimeMillis();
+                        double speed = ((lastEncoderCount-motor.getCurrentPosition())/period)/MAX_COUNTS_PER_MINUTE;
+                        lastEncoderCount = motor.getCurrentPosition();
 
+                        //Calculate error
+                        double error = getSpeed() - speed;
+                        errorSum += error;
 
+                        //Calculate PID
+                        double proportional = kP * error / TimeUnit.MILLISECONDS.toSeconds(sampleRate)/60.0;
+                        double integral = kI * errorSum / TimeUnit.MILLISECONDS.toSeconds(sampleRate)/60.0;
+                        double derivative = kD * (error - lastError) / TimeUnit.MILLISECONDS.toSeconds(sampleRate)/60.0;
+                        lastError = error;
+
+                        motor.setPower(proportional + integral + derivative);
                     }
                 }
             }
@@ -92,6 +128,4 @@ public class PIDController {
     public void turnOff() {
         this.on = false;
     }
-
-    //Main methods
 }

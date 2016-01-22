@@ -7,7 +7,7 @@ public final class Joystick{
 
     private Joystick(){}
 
-    public static boolean isReleased(Gamepad gamepad, button button, int boolArray){
+    public static boolean isReleased(Gamepad gamepad, button button, int bitfield){
         boolean bool = false;
         switch(button){
             case a:
@@ -41,9 +41,9 @@ public final class Joystick{
                 bool = (gamepad.right_trigger > 0.0);
                 break;
         }
-        if(((boolArray & button.getValue()) != button.getValue() && bool) || (((boolArray & button.getValue()) == button.getValue()) && !bool)){
-            boolArray ^= button.getValue();
-            return !((boolArray & button.getValue()) == button.getValue());
+        if(((bitfield & button.getValue()) != button.getValue() && bool) || (((bitfield & button.getValue()) == button.getValue()) && !bool)){
+            bitfield ^= button.getValue();
+            return !((bitfield & button.getValue()) == button.getValue());
         }
         return false;
     }
@@ -61,13 +61,13 @@ public final class Joystick{
     }
 
     public enum button{
-        a(512), b(256), x(128), y(64), left_bumper(32), right_bumper(16), left_stick_button(8), right_stick_button(4), left_trigger(2), right_trigger(1);
+        a(0), b(1), x(2), y(3), left_bumper(4), right_bumper(5), left_stick_button(6), right_stick_button(7), left_trigger(8), right_trigger(9);
         private final int value;
         private button(final int newValue){
             value = newValue;
         }
         public int getValue(){
-            return value;
+            return 1 << value;
         }
     }
 }

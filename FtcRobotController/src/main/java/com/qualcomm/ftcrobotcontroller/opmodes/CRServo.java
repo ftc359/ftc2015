@@ -1,20 +1,18 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.ftcrobotcontroller.headers.Joystick;
 
 public class CRServo extends OpMode{
-    private DcMotor motor;
-    private Servo CRservo;
+    private Servo crServo;
+
 
     public void init(){
-        motor = hardwareMap.dcMotor.get("motor");
-        CRservo = hardwareMap.servo.get("servo");
+        crServo = hardwareMap.servo.get("servo");
     }
 
     public void loop(){
-        motor.setPower(gamepad1.right_stick_y);
-        CRservo.setPosition(gamepad1.left_stick_y);
+        crServo.setPosition(Joystick.exponential(0.5, gamepad1.left_stick_y, 0.05) + 0.5);
     }
 }

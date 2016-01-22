@@ -56,7 +56,7 @@ public class ServoV2{
     }
 
     public void setPosition(double position) {
-        this.position = Range.clip(position, 0.01D, 0.99D);
+        this.position = Range.clip(position, 0.00D, 1.00D);
         if(changeRate == 0)
             servo.setPosition(this.position);
     }
@@ -93,11 +93,12 @@ public class ServoV2{
 
         public void run() {
             while (on) {
-                while((changeRate > 0 && servo.getPosition() < position) || (changeRate < 0 && servo.getPosition() > position))
-                servo.setPosition(Range.clip(servo.getPosition() + (Math.signum(changeRate) / 100D), Servo.MIN_POSITION, Servo.MAX_POSITION));
-                try {
-                    this.wait(Math.abs(changeRate * 10L));
-                } catch (InterruptedException e) {
+                while(Math.abs(position - servo.getPosition()) > 0) {
+                    servo.setPosition(Range.clip(servo.getPosition() + (Math.signum(changeRate) / 100D), MIN_POSITION, MAX_POSITION));
+                    try {
+                        this.wait(Math.abs(changeRate * 10L));
+                    } catch (InterruptedException e) {
+                    }
                 }
             }
         }

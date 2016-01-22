@@ -98,6 +98,14 @@ public class GamepadV2 extends Gamepad{
         return this.buttonPressed(Joystick.button.right_trigger, onPress);
     }
 
+    public boolean left_stick_button_isReleased(boolean onPress){
+        return this.buttonPressed(Joystick.button.left_stick_button, onPress);
+    }
+
+    public boolean right_stick_button_isReleased(boolean onPress){
+        return this.buttonPressed(Joystick.button.right_stick_button, onPress);
+    }
+
     private synchronized boolean buttonPressed(Joystick.button button, boolean onPress){
         boolean bool = false;
         switch(button){

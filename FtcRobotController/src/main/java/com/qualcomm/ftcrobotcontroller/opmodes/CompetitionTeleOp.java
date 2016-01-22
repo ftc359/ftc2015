@@ -1,7 +1,6 @@
 package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
@@ -9,122 +8,6 @@ import com.qualcomm.ftcrobotcontroller.headers.ServoV2;
 import com.qualcomm.ftcrobotcontroller.headers.GamepadV2;
 import com.qualcomm.ftcrobotcontroller.headers.Joystick;
 import com.qualcomm.ftcrobotcontroller.headers.Timer;
-/*
-public class CompetitionTeleOp extends OpMode{
-    DcMotor frontLeft, frontRight, backLeft, backRight, tapeMeasure, hooks; //Initialize DcMotor objects
-    Servo climbers, stopper; //Initialize Servo objects
-
-    //Values to be carried between functions
-    //int G1ButtonArray = 0; //Bit array used to work in sync with isReleased to determine if a button is being held
-    double stopperPosition = 0.16;
-    long timeStarted = 0;
-
-    //Constants
-    final static double THRESHOLD = 0.10;
-    final static double DRIVEMOTORS_MAX = 1.00;
-    final static double HOOKS_MAX = 0.40;
-    final static double TAPEMEASURE_MAX = 1.00;
-
-    private enum climbersPosition{
-        OPEN(0.00), CLOSE(1.00);
-
-        private final double position;
-        private climbersPosition(final double pos){
-            position = pos;
-        }
-        public double getPosition(){
-            return position;
-        }
-    }
-
-
-
-    //Assign the locations of the motors to our DcMotors
-    @Override
-    public void init(){
-        //Initialize drive motors
-        frontLeft = hardwareMap.dcMotor.get("frontLeft");
-        frontRight = hardwareMap.dcMotor.get("frontRight");
-        backLeft = hardwareMap.dcMotor.get("backLeft");
-        backRight = hardwareMap.dcMotor.get("backRight");
-
-        //Initialize secondary motors
-        hooks = hardwareMap.dcMotor.get("hooks");
-        tapeMeasure = hardwareMap.dcMotor.get("tapeMeasure");
-
-        //Initialize servos
-        climbers = hardwareMap.servo.get("climbers");
-        stopper = hardwareMap.servo.get("stopper");
-
-        //Set the direction of motors
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
-    }
-
-    @Override
-    public void start(){
-        climbers.setPosition(climbersPosition.CLOSE.getPosition());
-        stopper.setPosition(0.75);
-    }
-
-    //Actual TeleOp
-    @Override
-    public void loop(){
-        //Map the drive motors to gamepad 1's joysticks
-        double leftMotors = Joystick.exponential(DRIVEMOTORS_MAX, gamepad1.left_stick_y, THRESHOLD);
-        double rightMotors = Joystick.exponential(DRIVEMOTORS_MAX, gamepad1.right_stick_y, THRESHOLD);
-
-        frontLeft.setPower(leftMotors);
-        backLeft.setPower(leftMotors);
-        frontRight.setPower(rightMotors);
-        backRight.setPower(rightMotors);
-
-        //Map a servo to gamepad 1's bumper buttons
-        if(gamepad1.right_bumper)
-            climbers.setPosition(climbersPosition.OPEN.getPosition());
-        else if(gamepad1.left_bumper)
-            climbers.setPosition(climbersPosition.CLOSE.getPosition());
-
-        //Map the secondary motors to gamepad 2's joysticks
-        tapeMeasure.setPower(Joystick.exponential(TAPEMEASURE_MAX, gamepad2.right_stick_y, THRESHOLD));
-        hooks.setPower(Joystick.exponential(HOOKS_MAX, gamepad2.left_stick_y, THRESHOLD));
-
-        //Map a servo to gamepad 2's bumper buttons
-        long timeSinceStart = SystemClock.elapsedRealtime() - timeStarted;
-        if(gamepad2.right_bumper) {
-            if(timeStarted == 0)
-                timeStarted = SystemClock.elapsedRealtime();
-            if(timeSinceStart % 5 < 1) {
-                if (timeSinceStart > 2000)
-                    stopperPosition -= (stopperPosition % 0.05 == 0.00) ? 0.05 : stopperPosition % 0.05;
-                else
-                    stopperPosition -= 0.01;
-            }
-        }
-        else if(gamepad2.left_bumper) {
-            if(timeStarted == 0)
-                timeStarted = SystemClock.elapsedRealtime();
-            if(timeSinceStart % 5 < 1) {
-                if (timeSinceStart > 2000)
-                    stopperPosition += 0.05 - stopperPosition % 0.05;
-                else
-                    stopperPosition += 0.01;
-            }
-        }
-        else
-            timeStarted = 0;
-        stopperPosition = Range.clip(stopperPosition, 0.16D, 0.95D);
-        stopper.setPosition(stopperPosition);
-        
-
-        //Telemetry
-        telemetry.addData("driveMotors", String.format("Left Side: %1.2f\tRight Side: %1.2f", leftMotors, rightMotors));
-        telemetry.addData("hooks", String.format("Hooks: %1.2f", hooks.getPower()));
-        telemetry.addData("tapeMeasure", String.format("Tape Measure: %1.2f", tapeMeasure.getPower()));
-        telemetry.addData("servos", String.format("Climbers: %1.2f\tStopper: %1.2f", climbers.getPosition(), stopper.getPosition()));
-    }
-}
-*/
 
 public class CompetitionTeleOp extends OpMode{
     //INITIALIZE VARIABLES
@@ -154,13 +37,15 @@ public class CompetitionTeleOp extends OpMode{
     INTAKE_MAX = 1.00D,
 
     CR_EQUILIBRIUM = 0.50D, //0.50 means that it will apply no power to itself, > 0.50 is in the CW direction and < 0.50 is in the CCW direction
-    AIMER_MIN = 0.00D, AIMER_MAX = 1.00D, AIMER_INIT = 0.50D,
-    STOPPER_MIN = 0.00D, STOPPER_MAX = 1.00D, STOPPER_INIT = 0.50D,
-    FILTER_MIN = 0.00D, FILTER_MAX = 1.00D, FILTER_INIT = 0.50D;
+    AIMER_MIN = 0.16D, AIMER_MAX = 1.00D,
+    STOPPER_CLOSE = 0.00D, STOPPER_OPEN = 1.00D,
+    DUMPER_UP = 0.00D, DUMPER_DOWN = 1.00D,
+    FILTER_MIN = 0.00D, FILTER_MAX = 1.00D;
 
     //Misc
     private long timeStarted = 0;
-    private double aimerPosition = AIMER_INIT;
+    private double aimerPosition = AIMER_MIN;
+    private boolean stopperMax = false, dumperMax = false;
     
     @Override
     public void init(){
@@ -188,36 +73,34 @@ public class CompetitionTeleOp extends OpMode{
         pusher = new ServoV2(hardwareMap.servo.get("pusher"));
     }
 
-    /*@Override
+    @Override
     public void start(){
         try {
             //Initialize servos to their starting values
             //All CR Servos should start at equilibrium so that they don't move
-            dumper.setPosition(CR_EQUILIBRIUM);
             tilter.setPosition(CR_EQUILIBRIUM);
             pusher.setPosition(CR_EQUILIBRIUM);
 
             //All 180 Servos should start at preset values
-            aimer.setPosition(AIMER_INIT);
-            stopper.setPosition(STOPPER_INIT);
-            filter.setPosition(FILTER_INIT);
+            dumper.setPosition(DUMPER_DOWN);
+            aimer.setPosition(AIMER_MIN);
+            stopper.setPosition(STOPPER_OPEN);
+            filter.setPosition(FILTER_MIN);
             //Set their change rates
-            aimer.setChangeRate(1);
+            //aimer.setChangeRate(1);
         }
         catch(IllegalArgumentException e){
             telemetry.addData("error", "@Start");
         }
-    }*/
-
-    boolean released1 = false, released2 = false;
+    }
 
     @Override
     public void loop(){
         joy1.update(gamepad1);
         joy2.update(gamepad2);
         //Map the drive motors to gamepad 1's joysticks
-        double leftMotors = Joystick.exponential(DRIVE_MAX, gamepad1.left_stick_y, THRESHOLD);
-        double rightMotors = Joystick.exponential(DRIVE_MAX, gamepad1.right_stick_y, THRESHOLD);
+        double leftMotors = joy1.left_stick_y_exponential(DRIVE_MAX);
+        double rightMotors = joy1.right_stick_y_exponential(DRIVE_MAX);
 
         frontLeft.setPower(leftMotors);
         backLeft.setPower(leftMotors);
@@ -225,20 +108,19 @@ public class CompetitionTeleOp extends OpMode{
         backRight.setPower(rightMotors);
 
         //Map the dumper and filter servos to gamepad 1's buttons
-        double dumperPower = (gamepad1.left_trigger > gamepad1.right_trigger)? -gamepad1.left_trigger : gamepad1.right_trigger;
-        dumper.setPosition(Joystick.exponential(1.00D, CR_EQUILIBRIUM + dumperPower / 2, THRESHOLD));
-        if(gamepad1.left_bumper)
+        pusher.setPosition(joy1.triggers_exponential(0.50D) + CR_EQUILIBRIUM);
+        if(joy1.left_bumper_isReleased(true))
             filter.setPosition(FILTER_MIN);
-        else if(gamepad1.right_bumper)
+        else if(joy1.right_bumper_isReleased(true))
             filter.setPosition(FILTER_MAX);
 
         //Map the secondary motors to gamepad 2's joysticks and buttons
-        tapeMeasure.setPower(Joystick.exponential(TAPEMEASURE_MAX, gamepad2.right_stick_y, THRESHOLD));
-        lift.setPower(Joystick.exponential(LIFT_MAX, gamepad2.left_stick_y, THRESHOLD));
-        double intakePower = (gamepad2.left_trigger > gamepad2.right_trigger)? -gamepad2.left_trigger : gamepad2.right_trigger;
-        intake.setPower(Joystick.exponential(INTAKE_MAX, intakePower, THRESHOLD));
+        tapeMeasure.setPower(joy2.right_stick_y_exponential(TAPEMEASURE_MAX));
+        lift.setPower(joy2.left_stick_y_exponential(LIFT_MAX));
+        intake.setPower(joy2.triggers_exponential(INTAKE_MAX));
         
         //Map the remaining servos to gamepad 2's buttons
+        /*
         long timeSinceStart = System.currentTimeMillis() - timeStarted;
         if(gamepad2.right_bumper) {
             if(timeStarted == 0)
@@ -263,19 +145,29 @@ public class CompetitionTeleOp extends OpMode{
         else
             timeStarted = 0;
         aimerPosition = Range.clip(aimerPosition, AIMER_MIN, AIMER_MAX);
-        stopper.setPosition(aimerPosition);
-        
-        if(gamepad2.a && stopper.getPosition() == STOPPER_MIN)
-            stopper.setPosition(STOPPER_MAX);
-        else if(gamepad2.a && stopper.getPosition() == STOPPER_MAX)
-            stopper.setPosition(STOPPER_MIN);
+        */
+        if(joy2.right_bumper_isReleased(true))
+            aimerPosition += 0.025;
+        if(joy2.left_bumper_isReleased(true))
+            aimerPosition -= 0.025;
+        aimerPosition = Range.clip(aimerPosition, AIMER_MIN, AIMER_MAX);
+        aimer.setPosition(aimerPosition);
 
-        if(gamepad1.x)
-            pusher.setPosition(1.00F);
-        else if(gamepad1.y)
-            pusher.setPosition(0.00F);
-        else
-            pusher.setPosition(CR_EQUILIBRIUM);
+        if(joy2.a_isReleased(true)){
+            if(stopperMax)
+                stopper.setPosition(STOPPER_CLOSE);
+            else
+                stopper.setPosition(STOPPER_OPEN);
+            stopperMax = !stopperMax;
+        }
+
+        if(joy1.a_isReleased(true)){
+            if(dumperMax)
+                dumper.setPosition(DUMPER_UP);
+            else
+                dumper.setPosition(DUMPER_DOWN);
+            dumperMax = !dumperMax;
+        }
 
         if(gamepad2.x)
             tilter.setPosition(0.75F);
@@ -284,22 +176,14 @@ public class CompetitionTeleOp extends OpMode{
         else
             tilter.setPosition(CR_EQUILIBRIUM);
 
-        if(joy1.a_isReleased(true))
-            released1 = true;
-        if(joy1.a_isReleased(false))
-            released2 = true;
-
         //Telemetry
         telemetry.addData("drive", String.format("Left: %.2f Right %.2f", leftMotors, rightMotors));
         telemetry.addData("secondary", String.format("Tape: %.2f Lift: %.2f Intake %.2f", tapeMeasure.getPower(), lift.getPower(), intake.getPower()));
-        telemetry.addData("aimer", aimer.getActualPosition());
-        telemetry.addData("test", joy1.toString());
-        telemetry.addData("test1", released1 + " " + released2 + " " + Joystick.button.a.getValue());
+        telemetry.addData("servos", String.format("Aimer: %.2f, %.2f Stopper: %.2f Dumper: %.2f Filter: %.2f", aimer.getPosition(), aimer.getActualPosition(), stopper.getPosition(), dumper.getPosition(), filter.getPosition()));
     }
 
     @Override
     public void stop(){
-        dumper.setPosition(CR_EQUILIBRIUM);
         tilter.setPosition(CR_EQUILIBRIUM);
         pusher.setPosition(CR_EQUILIBRIUM);
     }
